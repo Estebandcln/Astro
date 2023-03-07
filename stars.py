@@ -10,7 +10,7 @@ import cv2
 from PIL import Image
 
 
-# liste des images
+# list of images
 #####00000000000011111111111111122222222222233333333334444444444444555555555555555666666666666666677777777777778888888888888888899999999999991010101010101011111111111111111212121212121213131313131414141414
 img=["orion.jpg","pleiades.jpg","const.jpg","M53.jpg","teapot.jpg","scorpius.jpg","ursamajor.jpg","pisces.jpg","andromeda.jpg","jewelbox.jpg","hyades.jpg","cassiopea.jpg","europe.jpg","usa.jpg","world.jpg"]
 
@@ -20,26 +20,25 @@ image.show()
 
 grayscale_image = image.convert('L')
 
-# Création d'un masque à partir des pixels noirs
+# Mask from black pixels
 black_mask = grayscale_image.point(lambda x: 0 if x < 80 else 255)
 
-# Application du masque à l'image originale
+# Mask to original picture
 result_image = Image.composite(image, Image.new('RGB', image.size, (255, 255, 255)), black_mask)
 result_image.save(str(img[n]).replace('.jpg', '')+"_b.jpg")
 
 
-# Chargement de l'image en niveaux de gris avec cv2
 img = cv2.imread(img[n], cv2.IMREAD_GRAYSCALE)
 h, w = img.shape
 
-# Application d'un filtre de seuillage pour ne garder que les pixels clairs
+# Threshold that keeps only the bright pixels
 threshold_value = 160
 ret, thresh = cv2.threshold(img, threshold_value, 255, cv2.THRESH_BINARY)
 
-# Recherche des contours dans l'image seuillée
+# Seeking contours
 contours, hierarchy = cv2.findContours(thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
 
-# Stockage des coordonnées des étoiles détectées
+# Coordinates of the detected stars
 star1=[]
 star2=[]
 star3=[]
@@ -57,7 +56,7 @@ Plist=[80,50,30,20,8,2,0.1]
 sizelist=[150,100,50,20,6,2,0.2]
 sizelist=[80,50,30,10,5,2,0.1]
 
-# Choix de la précision (nombre de magnitudes différentes) (troncature au N<8 choisi)
+# Level of accuracy (magnitude level) (N<8)
 N=7
 del sizelist[N:]
 del Alist[N:]
@@ -65,15 +64,15 @@ del Plist[N:]
 del star_coords[N:]
 
 for c in contours:
-    # Calcul de l'aire et du périmètre du contour
+    # Area and perimeter of the contour
     A = cv2.contourArea(c)
     P = cv2.arcLength(c, True)
 
-    # Le contour est une étoile s'il est suffisamment grand et circulaire
+    # The contour is a star if big enough and circular
     circularity_threshold = 0.1
     
     for i in range(len(star_coords)):
-# Pas de borne sup : une grande étoile sera dans toutes les listes
+# A big star will appear in all lists. We will fix that later
         if A > Alist[i] and P > Plist[i]:
             circularity = 4 * 3.141592 * A / (P**2)
             if circularity > circularity_threshold:
@@ -84,7 +83,7 @@ for c in contours:
                 star_coords[i].append((cx, cy))
 
 
-# S'assure que l'étoile n'est que dans la liste de plus grande magnitude
+# Each star now appears only in one list (the one of greatest magnitude)
 a=0
 for i in range(len(star_coords)-1):
     for j in star_coords[i]:
@@ -94,7 +93,7 @@ for i in range(len(star_coords)-1):
                     star_coords[k].remove(l)
                     a+=1
 
-# Toutes les coordonnées des étoiles détectées
+# List of coordinates
 star_coords_tot=[]
 for i in star_coords:
     star_coords_tot += i
@@ -102,7 +101,7 @@ print("Coordonnées des étoiles :")
 for coords in star_coords_tot:
     print(coords)
 
-# Nombre d'étoiles de chaque liste de magnitude
+# Number of stars in each magnitude list
 plt.style.use('dark_background')
 plt.figure(1, dpi = 300)
 x=[]
@@ -114,7 +113,7 @@ plt.hist(x, range = (0, N), bins = N, color = 'c', edgecolor = 'b')
 plt.xlabel('niveau de luminosité')
 plt.ylabel('nombres d\'étoiles')
 
-# Photo recréée
+# Recreated picture
 plt.figure(2, dpi = 300)
 
 plt.xlim(0, w)
